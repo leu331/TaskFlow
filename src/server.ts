@@ -3,4 +3,4 @@ import { env } from "./env";
 
 const PORT = 3333
 
-app.listen(() => console.log(`O servirdor está rodando na porta de número ${PORT}`))
+app.listen(PORT, () => console.log(`O servidor está rodando na porta de número ${PORT}`))
