@@ -1,4 +1,3 @@
-import { create } from "domain";
 import { Request, Response, NextFunction } from "express";
 import { compare } from "bcrypt";
 import {sign} from "jsonwebtoken"
@@ -41,6 +40,8 @@ export class SessionController {
             }
         )
 
-        response.status(200).json({Token: token, user})
+        const {password: _, ...userWithoutPassword} = user
+
+        response.status(200).json({Token: token, userWithoutPassword})
     }
 }

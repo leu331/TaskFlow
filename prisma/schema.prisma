@@ -58,7 +58,7 @@ model Team {
   description String
   status      TeamStatus @default(open)
   createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime?  @default(now()) @map("updated_at")
+  updatedAt   DateTime?  @default(now()) @updatedAt @map("updated_at")
 
   TeamMember TeamMember[]
 
@@ -70,7 +70,7 @@ model TeamMember {
   teamId    String    @map("team_id")
   userId    String    @map("user_id")
   createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @default(now()) @map("updated_at")
+  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
@@ -87,7 +87,7 @@ model Task {
   teamId String @map("team_id")
 
   createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime? @default(now()) @map("updated_at")
+  updatedAt DateTime? @default(now()) @updatedAt @map("updated_at")
 
   team        Team          @relation(fields: [teamId], references: [id])
   user        User          @relation(fields: [assignedTo], references: [id])
@@ -99,7 +99,7 @@ model TaskHistory {
   taskId    String
   status    TaskStatus
   changedBy String
-  changedAt DateTime   @default(now())
+  changedAt DateTime   @default(now()) @updatedAt
   comment   String? // Campo opcional para adicionar uma justificativa para a mudança.
 
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)

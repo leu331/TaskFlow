@@ -31,4 +31,102 @@ export class TeamController {
 
         response.status(201).json({message: "Time criado com sucesso!", team})
     }
+
+    async update (request: Request, response: Response, next: NextFunction): Promise <void>{
+        const paramsSchema = z.object({
+            id: z.string().uuid()
+        })
+
+        const bodySchema = z.object({
+            status: z.string().trim().refine(value => ['open', 'closed'].includes(value), {message: "O valor do campo 'status' e inválido, os valores possíveis são 'open' ou 'closed'"})
+        })
+
+        const paramsResult = paramsSchema.parse(request.params)
+
+        if (!paramsResult) {
+            response.status(400).json({ erro: paramsResult });
+            return;
+        }
+
+        const bodyResult = bodySchema.parse(request.body);
+        if (!bodyResult) {
+           response.status(400).json({ error: bodyResult });
+           return
+        }
+
+        const {id} = request.params
+        const {status} = request.body
+
+        const existingTeam = await prisma.team.findUnique({ where: { id } });
+
+        if (!existingTeam) {
+            response.status(404).json({ erro: "Time não encontrado." });
+            return
+        }
+
+        if (existingTeam.status === "closed") {
+            response.status(400).json({ erro: "Este time já foi fechado e não pode mais ser atualizado." });
+            return
+        }
+
+        const updatedTeam = await prisma.team.update({
+            where: {id}, data: {status, updatedAt: new Date}
+        })
+
+        response.status(200).json({mensagem: "Time atualizado com sucesso", updatedTeam})
+        return
+    }
+
+    async index(request: Request, response: Response, next: NextFunction): Promise<void> {
+        const { name } = request.query;
+        const {status} = request.query
+        const {id} = request.query
+
+        const filter: any = {};
+
+        if (name) {
+            filter.name = {
+                contains: String(name),
+                mode: "insensitive",
+            };
+        }
+
+        if(status) {
+            filter.status = {
+                equals: String(status),
+            }
+        }
+        if (id) {
+            filter.id = {
+                contains: String(id),
+                mode: "insensitive",
+            }
+        }
+
+        try {
+            const teams = await prisma.team.findMany({
+                where: filter,
+
+                include: {
+                    TeamMember: {
+                        select: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    role: true
+                                }
+                            }
+                        }
+                    }
+                          
+                }
+            });
+
+            response.status(200).json({ Times: teams });
+        } catch (error) {
+            next(new AppError("Erro ao buscar times.", 500)); 
+        }
+    }
 }
